@@ -1,17 +1,19 @@
 package com.sprphnx.mail;
 
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+
+import com.sprphnx.mail.service.MailService;
 
 @SpringBootApplication
 public class MailApplication implements CommandLineRunner {
 
 	@Autowired
-    private JavaMailSender javaMailSender;
+	MailService mailService;
 	
 	public static void main(String[] args) {
 		SpringApplication.run(MailApplication.class, args);
@@ -19,14 +21,9 @@ public class MailApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-        SimpleMailMessage msg = new SimpleMailMessage();
-        msg.setTo("xyz@gmail.com");
-
-        msg.setSubject("Mail from SprPhnX");
-        msg.setText("This is a mail sent. Special thanks to MKYONG.com for this example :) ");
-
-        javaMailSender.send(msg);
-		
+        
+		mailService.send(Arrays.asList("toAddress@gmail.com"), "Testing", "my spring boot mail");
+		mailService.sendEmailWithAttachment();
 	}
 
 }
