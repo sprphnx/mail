@@ -1,17 +1,17 @@
 package com.sprphnx.mail.service;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import com.sprphnx.mail.model.Email;
 
 @Service
 public class MailService {
@@ -19,31 +19,41 @@ public class MailService {
 	@Autowired
     private JavaMailSender javaMailSender;
 	
-	public void send(List<String> toList, String subject, String message) {
-		SimpleMailMessage msg = new SimpleMailMessage();
-        msg.setTo(toList.toArray(new String[0]));
-        
-        msg.setSubject(subject);
-        msg.setText(message);
+	public void send(Email email) throws MessagingException, IOException {
+		if(email.getAttachments()!=null && email.getAttachments().size()>0) {
+			sendEmailWithAttachment(email);
+		} else {
+			SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
 
-        javaMailSender.send(msg);
+			simpleMailMessage.setTo(email.getToAddresses().toArray(new String[0]));
+	        simpleMailMessage.setSubject(email.getSubject());
+	        simpleMailMessage.setText(email.getMessage());
+
+	        javaMailSender.send(simpleMailMessage);
+		}
 	}
 	
-	public void sendEmailWithAttachment() throws MessagingException, IOException {
+	public void sendEmailWithAttachment(Email email) throws MessagingException, IOException {
 
         MimeMessage msg = javaMailSender.createMimeMessage();
 
-        // true = multipart message
         MimeMessageHelper helper = new MimeMessageHelper(msg, true);
 		
-        helper.setTo("toaddress@gmail.com");
+        helper.setTo(email.getToAddresses().toArray(new String[0]));
 
-        helper.setSubject("Testing from Spring Boot");
+        helper.setSubject(email.getSubject());
 
-        helper.setText("<h1>Check attachment for image!</h1>", true);
+        helper.setText(email.getMessage(), true);
 
-        helper.addAttachment("VR.jpg", new ClassPathResource("VR.jpg"));
-
+        email.getAttachments().forEach(attachment->{
+			try {
+				helper.addAttachment(attachment.getName(), attachment);
+			} catch (MessagingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
+        
         javaMailSender.send(msg);
 
     }
